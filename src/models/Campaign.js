@@ -35,14 +35,19 @@ const MediaType = {
   OTHER: 'OTHER'
 };
 
+const PayoutType = {
+  CASH: 'cash',
+  BARTER: 'barter'
+};
+
 const BidSchema = new Schema(
   {
-    bidderId: {
+    bidder_id: {
       type: Schema.Types.ObjectId,
       required: true,
-      refPath: 'bids.bidderType'
+      refPath: 'bids.bidder_type'
     },
-    bidderType: {
+    bidder_type: {
       type: String,
       enum: Object.values(BidderType),
       required: true
@@ -55,23 +60,29 @@ const BidSchema = new Schema(
       default: BidStatus.PENDING
     }
   },
-  { timestamps: true, _id: true }
+  { 
+    timestamps: { 
+      createdAt: 'created_at', 
+      updatedAt: 'updated_at' 
+    }, 
+    _id: true 
+  }
 );
 
 const CampaignStepSchema = new Schema(
   {
     title: { type: String, required: true },
     description: { type: String },
-    requiresApproval: { type: Boolean, default: false },
+    requires_approval: { type: Boolean, default: false },
     status: {
       type: String,
       enum: Object.values(StepStatus),
       default: StepStatus.PENDING
     },
-    dueDate: { type: Date },
-    submittedAt: { type: Date },
-    reviewedAt: { type: Date },
-    reviewNote: { type: String }
+    due_date: { type: Date },
+    submitted_at: { type: Date },
+    reviewed_at: { type: Date },
+    review_note: { type: String }
   },
   { _id: true }
 );
@@ -79,45 +90,76 @@ const CampaignStepSchema = new Schema(
 const CampaignMediaSchema = new Schema(
   {
     url: { type: String, required: true },
-    mediaType: {
+    media_type: {
       type: String,
       enum: Object.values(MediaType),
       required: true
     },
-    fileName: { type: String },
-    fileSize: { type: Number },
-    mimeType: { type: String },
-    uploadedAt: { type: Date, default: Date.now }
+    file_name: { type: String },
+    file_size: { type: Number },
+    mime_type: { type: String },
+    uploaded_at: { type: Date, default: Date.now }
   },
   { _id: true }
 );
 
 const CampaignSchema = new Schema(
   {
-    brandId: { type: Schema.Types.ObjectId, ref: 'Brand', required: true, index: true },
-    agencyId: { type: Schema.Types.ObjectId, ref: 'Agency', index: true },
+    brand_id: { 
+      type: Schema.Types.ObjectId, 
+      ref: 'Brand', 
+      required: true, 
+      index: true 
+    },
     title: { type: String, required: true },
     description: { type: String, required: true },
     requirements: [{ type: String }],
-    minBid: { type: Number, min: 0 },
-    maxBid: { type: Number, min: 0 },
-    startDate: { type: Date, required: true },
-    endDate: { type: Date, required: true },
+    
+    // Payout Logic
+    payout_type: {
+      type: String,
+      enum: Object.values(PayoutType),
+      required: true
+    },
+    min_payout: { 
+      type: Number, 
+      min: 0
+    },
+    max_payout: { 
+      type: Number, 
+      min: 0
+    },
+    barter_description: {
+      type: String
+    },
+
+    // Creator Requirements
+    min_follower_count: { type: Number, default: 0 },
+    platforms: [{ 
+      type: String,
+      enum: ['instagram', 'youtube', 'linkedin', 'facebook', 'twitter', 'tiktok']
+    }],
+    creators_required: { type: Number, default: 1 },
+
+    start_date: { type: Date, required: true },
+    end_date: { type: Date, required: true },
     status: {
       type: String,
       enum: Object.values(CampaignStatus),
       default: CampaignStatus.OPEN
     },
-    rosterSelection: [{ type: Schema.Types.ObjectId, ref: 'User' }],
+    
     bids: { type: [BidSchema], default: [] },
     steps: { type: [CampaignStepSchema], default: [] },
     media: { type: [CampaignMediaSchema], default: [] }
   },
-  { timestamps: true }
+  { 
+    timestamps: true 
+  }
 );
 
-CampaignSchema.index({ 'bids.bidderId': 1, 'bids.bidderType': 1 });
-CampaignSchema.index({ status: 1, startDate: 1, endDate: 1 });
+CampaignSchema.index({ 'bids.bidder_id': 1, 'bids.bidder_type': 1 });
+CampaignSchema.index({ status: 1, start_date: 1, end_date: 1 });
 
 module.exports = mongoose.model('Campaign', CampaignSchema);
 module.exports.CampaignStatus = CampaignStatus;
@@ -125,3 +167,4 @@ module.exports.BidderType = BidderType;
 module.exports.BidStatus = BidStatus;
 module.exports.StepStatus = StepStatus;
 module.exports.MediaType = MediaType;
+module.exports.PayoutType = PayoutType;
