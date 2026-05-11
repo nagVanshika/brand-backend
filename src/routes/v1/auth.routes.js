@@ -1,8 +1,26 @@
 const express = require('express');
-const router = express.Router();
-const authController = require('../../controllers/auth.controller');
+const authController = require('../../controllers/v1/auth.controller');
+const validateRequest = require('../../middleware/validate.middleware');
+const { requestOtpSchema, verifyOtpSchema, refreshTokenSchema } = require('../../validators/auth.validator');
 
-router.post('/login', authController.login);
-router.post('/verify-otp', authController.verifyOtp);
+const router = express.Router();
+
+router.post(
+  '/request-otp',
+  validateRequest(requestOtpSchema),
+  authController.requestOtp
+);
+
+router.post(
+  '/verify-otp',
+  validateRequest(verifyOtpSchema),
+  authController.verifyOtp
+);
+
+router.post(
+  '/refresh',
+  validateRequest(refreshTokenSchema),
+  authController.refresh
+);
 
 module.exports = router;

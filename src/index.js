@@ -1,22 +1,19 @@
 const app = require('./app');
-const mongoose = require('mongoose');
-const dotenv = require('dotenv');
-require('./models/User');
-require('./models/Brand');
-require('./models/Campaign');
+const connectDB = require('./config/db.config');
+const env = require('./config/env.config');
+const pino = require('pino')();
 
-dotenv.config();
+// Initialize Models (Ensures schemas are registered)
+require('./models/User.model');
+require('./models/Brand.model');
+require('./models/BrandKYC.model');
+require('./models/Campaign.model');
+require('./models/Admin.model');
+require('./models/CampaignRoster.model');
 
-const PORT = process.env.PORT || 5001;
-const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/khikhi_brand';
-
-mongoose.connect(MONGO_URI)
-  .then(() => {
-    console.log('Connected to MongoDB');
-    app.listen(PORT, () => {
-      console.log(`Server running on port ${PORT}`);
-    });
-  })
-  .catch((err) => {
-    console.error('Database connection error:', err);
+// Connect to Database
+connectDB().then(() => {
+  app.listen(env.PORT, () => {
+    pino.info(`🚀 Server running in ${env.NODE_ENV} mode on port ${env.PORT}`);
   });
+});
